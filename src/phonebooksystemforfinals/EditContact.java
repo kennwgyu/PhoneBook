@@ -239,8 +239,8 @@ public void Connect()
     String lname = lnameadd.getText();
     String nname = nnameadd.getText();
     String num = numadd.getText();
-
     
+    // Check image path and handle it
     String imagePath = selectedImagePath;
     byte[] imageBytes = null;
 
@@ -255,35 +255,40 @@ public void Connect()
         }
     }
     
+    // Validate field lengths
     if (fname.length() > 30) {
-        JOptionPane.showMessageDialog(this, "Max 30 characters allowed in Phone Number.", "Input Error", JOptionPane.WARNING_MESSAGE);
-        clearAllFields();
+        JOptionPane.showMessageDialog(this, "First Name: Max 30 characters allowed.", "Input Error", JOptionPane.WARNING_MESSAGE);
         return;
     }
     if (mname.length() > 30) {
-        JOptionPane.showMessageDialog(this, "Max 30 characters allowed in First Name.", "Input Error", JOptionPane.WARNING_MESSAGE);
-        clearAllFields();
+        JOptionPane.showMessageDialog(this, "Middle Name: Max 30 characters allowed.", "Input Error", JOptionPane.WARNING_MESSAGE);
         return;
     }
     if (lname.length() > 30) {
-        JOptionPane.showMessageDialog(this, "Max 30 characters allowed in Middle Name.", "Input Error", JOptionPane.WARNING_MESSAGE);
-        clearAllFields();
+        JOptionPane.showMessageDialog(this, "Last Name: Max 30 characters allowed.", "Input Error", JOptionPane.WARNING_MESSAGE);
         return;
     }
     if (nname.length() > 30) {
-        JOptionPane.showMessageDialog(this, "Max 30 characters allowed in Last Name.", "Input Error", JOptionPane.WARNING_MESSAGE);
-        clearAllFields();
+        JOptionPane.showMessageDialog(this, "Nickname: Max 30 characters allowed.", "Input Error", JOptionPane.WARNING_MESSAGE);
         return;
     }
+    
+    // Validate phone number format (only digits, +, -, *, /)
+    if (!num.matches("[0-9+\\-*/]*")) {
+        JOptionPane.showMessageDialog(this, "Phone number contains invalid characters. Only digits and '+', '-', '*', '/' are allowed.", "Input Error", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    
     if (num.length() > 30) {
-        JOptionPane.showMessageDialog(this, "Max 30 characters allowed in Nickname.", "Input Error", JOptionPane.WARNING_MESSAGE);
-        clearAllFields();
+        JOptionPane.showMessageDialog(this, "Phone Number: Max 30 characters allowed.", "Input Error", JOptionPane.WARNING_MESSAGE);
         return;
     }
 
-
+    // SQL Query to update contact
     String updateInfoQuery = "UPDATE userinfo SET fname = ?, mname = ?, lname = ?, nname = ?, pnum = ?, img = ? WHERE id = ?";
+
     try {
+        // Database connection and statement preparation
         Connect();
         PreparedStatement updateInfoStmt = con.prepareStatement(updateInfoQuery);
         updateInfoStmt.setString(1, fname);
@@ -291,16 +296,20 @@ public void Connect()
         updateInfoStmt.setString(3, lname);
         updateInfoStmt.setString(4, nname);
         updateInfoStmt.setString(5, num);
-        
+
+        // If an image was selected, add it to the database; else, set null for the image
         if (imageBytes != null) {
             updateInfoStmt.setBytes(6, imageBytes);
         } else {
             updateInfoStmt.setNull(6, java.sql.Types.BLOB);
         }
 
-        updateInfoStmt.setString(7, id); 
+        updateInfoStmt.setString(7, id);
+
+        // Execute the update query
         int rowsAffected = updateInfoStmt.executeUpdate();
 
+        // Handle success/failure of the update operation
         if (rowsAffected > 0) {
             JOptionPane.showMessageDialog(this, "Contact updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             this.dispose();
